@@ -1,178 +1,24 @@
-import { Users, UserPlus, Shield, Wrench, Leaf } from "lucide-react"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useMemo, useState } from "react";
+import { Search, Shield, UserPlus, Users, Wrench, Leaf, X, CheckCircle2, Ban } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { users as initialUsers, type PlatformUser, type UserRole } from "@/lib/mock-data";
 
-type UserRole = "Admin" | "Technical Staff" | "Farmer"
-
-interface User {
-  id: string
-  name: string
-  role: UserRole
-  email: string
-  phone: string
-  status: "active" | "disabled"
+export default function UsersPage(){
+ const [userList,setUserList]=useState<PlatformUser[]>(initialUsers);const [search,setSearch]=useState("");const [roleFilter,setRoleFilter]=useState("all");const [showForm,setShowForm]=useState(false);const [name,setName]=useState("");const [email,setEmail]=useState("");const [phone,setPhone]=useState("");const [role,setRole]=useState<UserRole>("Farmer");const [notice,setNotice]=useState("");
+ const filtered=useMemo(()=>userList.filter((u)=>`${u.name} ${u.email} ${u.phone} ${u.site}`.toLowerCase().includes(search.toLowerCase())&&(roleFilter==="all"||u.role===roleFilter)),[userList,search,roleFilter]);
+ function addUser(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const item:PlatformUser={id:`U${String(userList.length+1).padStart(3,"0")}`,name:name.trim(),role,email:email.trim(),phone:phone.trim(),site:role==="Farmer"?"Unassigned":"Network operations",status:"active"};setUserList((current)=>[item,...current]);setName("");setEmail("");setPhone("");setRole("Farmer");setShowForm(false);setNotice(`${item.name} has been added to this user list.`)}
+ function toggleStatus(id:string){setUserList((current)=>current.map((u)=>u.id===id?{...u,status:u.status==="active"?"disabled":"active"}:u));setNotice("User access status updated.")}
+ const count=(r:UserRole)=>userList.filter((u)=>u.role===r&&u.status==="active").length;
+ return <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"><section className="flex flex-col gap-4 rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><Users size={14}/> Access administration</div><h1 className="mt-3 text-3xl font-bold text-[var(--admin-primary-deep)]">User management</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--admin-muted)]">Manage administrators, field staff, and farmers who use the monitoring network.</p></div><Button onClick={()=>setShowForm((v)=>!v)} className="rounded-xl bg-[var(--admin-primary)] text-white">{showForm?<X size={16} className="mr-2"/>:<UserPlus size={16} className="mr-2"/>}{showForm?"Cancel":"Add user"}</Button></section>
+ {notice&&<div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+ {showForm&&<Card className="rounded-2xl border-[var(--admin-border)]"><CardContent className="p-5"><h2 className="mb-4 font-semibold text-[var(--admin-primary-deep)]">Create user profile</h2><form onSubmit={addUser} className="grid gap-4 md:grid-cols-5"><label className="text-sm text-slate-700">Full name<Input required value={name} onChange={(e)=>setName(e.target.value)} className="mt-1 rounded-xl" placeholder="Full name"/></label><label className="text-sm text-slate-700">Email address<Input required type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="mt-1 rounded-xl" placeholder="name@example.com"/></label><label className="text-sm text-slate-700">Phone<Input value={phone} onChange={(e)=>setPhone(e.target.value)} className="mt-1 rounded-xl" placeholder="07xx xxx xxx"/></label><label className="text-sm text-slate-700">Role<select value={role} onChange={(e)=>setRole(e.target.value as UserRole)} className="mt-1 h-10 w-full rounded-xl border border-[var(--admin-border)] bg-white px-3"><option>Farmer</option><option>Technical Staff</option><option>Admin</option></select></label><div className="flex items-end"><Button type="submit" className="w-full rounded-xl bg-[var(--admin-primary)] text-white">Create user</Button></div></form></CardContent></Card>}
+ <section className="grid gap-4 sm:grid-cols-3"><Summary title="Administrators" value={String(count("Admin"))} icon={<Shield size={18}/>}/><Summary title="Technical staff" value={String(count("Technical Staff"))} icon={<Wrench size={18}/>}/><Summary title="Farmers" value={String(count("Farmer"))} icon={<Leaf size={18}/>}/></section>
+ <section className="flex flex-col gap-3 rounded-2xl border border-[var(--admin-border)] bg-white p-4 shadow-sm md:flex-row"><div className="relative flex-1"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search name, email, phone, or site" className="rounded-xl pl-9"/></div><select value={roleFilter} onChange={(e)=>setRoleFilter(e.target.value)} className="h-10 rounded-xl border border-[var(--admin-border)] bg-white px-3 text-sm"><option value="all">All roles</option><option>Admin</option><option>Technical Staff</option><option>Farmer</option></select><span className="self-center text-sm text-[var(--admin-muted)]">{filtered.length} users</span></section>
+ <Card className="overflow-hidden rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="p-0"><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-[var(--admin-surface)] text-xs uppercase tracking-wide text-[var(--admin-muted)]"><tr><th className="px-5 py-4 font-medium">User</th><th className="px-5 py-4 font-medium">Role</th><th className="px-5 py-4 font-medium">Assigned site</th><th className="px-5 py-4 font-medium">Status</th><th className="px-5 py-4 font-medium">Access</th></tr></thead><tbody>{filtered.map((user)=><tr key={user.id} className="border-t border-slate-100"><td className="px-5 py-4"><div className="font-semibold text-slate-800">{user.name}</div><div className="mt-1 text-xs text-[var(--admin-muted)]">{user.email} · {user.phone}</div></td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${user.role==="Admin"?"bg-violet-50 text-violet-700":user.role==="Technical Staff"?"bg-blue-50 text-blue-700":"bg-emerald-50 text-emerald-700"}`}>{user.role}</span></td><td className="px-5 py-4 text-slate-600">{user.site}</td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${user.status==="active"?"bg-emerald-50 text-emerald-700":"bg-slate-100 text-slate-600"}`}>{user.status==="active"?"Active":"Disabled"}</span></td><td className="px-5 py-4"><Button variant="outline" size="sm" onClick={()=>toggleStatus(user.id)} className="rounded-lg border-[var(--admin-border)]">{user.status==="active"?<><Ban size={14} className="mr-1.5"/>Disable</>:<><CheckCircle2 size={14} className="mr-1.5"/>Enable</>}</Button></td></tr>)}</tbody></table></div>{filtered.length===0&&<p className="p-8 text-center text-sm text-[var(--admin-muted)]">No users match those filters.</p>}</CardContent></Card>
+ </div>
 }
-
-const users: User[] = [
-  {
-    id: "U01",
-    name: "Project Administrator",
-    role: "Admin",
-    email: "admin@baharicbo.org",
-    phone: "0712729004",
-    status: "active",
-  },
-  {
-    id: "U02",
-    name: "Field Technician",
-    role: "Technical Staff",
-    email: "tech@baharicbo.org",
-    phone: "0708872299",
-    status: "active",
-  },
-  {
-    id: "U03",
-    name: "Seaweed Farmer",
-    role: "Farmer",
-    email: "farmer@example.com",
-    phone: "0722334455",
-    status: "active",
-  },
-]
-
-export default function UsersPage() {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-
-      {/* Header */}
-      <section className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--admin-primary-deep)]">
-            User Management
-          </h1>
-
-          <p className="text-sm text-[var(--admin-muted)]">
-            Manage administrators, technical staff, and farmers who can access the monitoring system.
-          </p>
-        </div>
-
-        <Button className="rounded-2xl bg-[var(--admin-primary)] text-white flex items-center gap-2">
-          <UserPlus size={16} />
-          Add User
-        </Button>
-      </section>
-
-      {/* Summary */}
-      <section className="grid md:grid-cols-3 gap-6 mb-8">
-
-        <SummaryCard
-          title="Administrators"
-          value="1"
-          icon={<Shield size={18} />}
-        />
-
-        <SummaryCard
-          title="Technical Staff"
-          value="3"
-          icon={<Wrench size={18} />}
-        />
-
-        <SummaryCard
-          title="Farmers"
-          value="12"
-          icon={<Leaf size={18} />}
-        />
-
-      </section>
-
-      {/* Users list */}
-      <section className="space-y-4">
-        {users.map(user => (
-          <UserRow key={user.id} user={user} />
-        ))}
-      </section>
-
-    </div>
-  )
-}
-
-function SummaryCard({
-  title,
-  value,
-  icon,
-}: {
-  title: string
-  value: string
-  icon: React.ReactNode
-}) {
-  return (
-    <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm">
-      <CardContent className="p-6 flex items-center justify-between">
-
-        <div>
-          <div className="text-sm text-[var(--admin-muted)]">{title}</div>
-          <div className="text-2xl font-bold text-[var(--admin-primary-deep)]">
-            {value}
-          </div>
-        </div>
-
-        <div className="h-10 w-10 rounded-xl grid place-items-center bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]">
-          {icon}
-        </div>
-
-      </CardContent>
-    </Card>
-  )
-}
-
-function UserRow({ user }: { user: User }) {
-
-  const roleColor =
-    user.role === "Admin"
-      ? "bg-purple-100 text-purple-700"
-      : user.role === "Technical Staff"
-      ? "bg-blue-100 text-blue-700"
-      : "bg-emerald-100 text-emerald-700"
-
-  const statusColor =
-    user.status === "active"
-      ? "bg-emerald-100 text-emerald-700"
-      : "bg-red-100 text-red-700"
-
-  return (
-    <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm">
-      <CardContent className="p-5 flex items-center justify-between">
-
-        <div>
-          <div className="font-semibold text-[var(--admin-primary-deep)]">
-            {user.name}
-          </div>
-
-          <div className="text-xs text-[var(--admin-muted)]">
-            {user.email} • {user.phone}
-          </div>
-        </div>
-
-        <div className={`text-xs px-3 py-1 rounded-xl ${roleColor}`}>
-          {user.role}
-        </div>
-
-        <div className={`text-xs px-3 py-1 rounded-xl ${statusColor}`}>
-          {user.status}
-        </div>
-
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="rounded-xl">
-            Edit
-          </Button>
-
-          <Button size="sm" className="rounded-xl bg-[var(--admin-primary)] text-white">
-            Disable
-          </Button>
-        </div>
-
-      </CardContent>
-    </Card>
-  )
-}
+function Summary({title,value,icon}:{title:string;value:string;icon:React.ReactNode}){return <Card className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="flex items-center justify-between p-5"><div><p className="text-sm text-[var(--admin-muted)]">{title}</p><p className="mt-1 text-2xl font-bold text-[var(--admin-primary-deep)]">{value}</p></div><span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]">{icon}</span></CardContent></Card>}

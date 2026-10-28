@@ -1,60 +1,14 @@
-import { Plug, Smartphone, Database } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+"use client";
 
-export default function IntegrationsPage() {
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+import { useState } from "react";
+import { CheckCircle2, Clock3, Database, Plug, RefreshCw, Smartphone, Cloud } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { integrations as initialIntegrations, type PlatformIntegration } from "@/lib/mock-data";
 
-      <h1 className="text-2xl font-bold text-[var(--admin-primary-deep)] mb-6">
-        Integrations
-      </h1>
-
-      <div className="grid md:grid-cols-3 gap-6">
-
-        <IntegrationCard
-          icon={<Database size={20} />}
-          title="IoT Data API"
-          description="Connect the platform to sensor data streams."
-        />
-
-        <IntegrationCard
-          icon={<Smartphone size={20} />}
-          title="SMS Alerts"
-          description="Send SMS notifications when thresholds are exceeded."
-        />
-
-        <IntegrationCard
-          icon={<Plug size={20} />}
-          title="External Systems"
-          description="Connect to analytics or data export services."
-        />
-
-      </div>
-
-    </div>
-  )
-}
-
-function IntegrationCard({ icon, title, description }: any) {
-  return (
-    <Card className="rounded-3xl border-[var(--admin-border)]">
-      <CardContent className="p-6 space-y-3">
-
-        <div className="flex items-center gap-2 text-[var(--admin-primary)]">
-          {icon}
-          <span className="font-semibold">{title}</span>
-        </div>
-
-        <p className="text-sm text-[var(--admin-muted)]">
-          {description}
-        </p>
-
-        <Button className="rounded-xl bg-[var(--admin-primary)] text-white">
-          Configure
-        </Button>
-
-      </CardContent>
-    </Card>
-  )
-}
+const iconById={"iot-api":Database,"sms-gateway":Smartphone,"weather-service":Cloud};
+export default function IntegrationsPage(){const [items,setItems]=useState<PlatformIntegration[]>(initialIntegrations);const [notice,setNotice]=useState("");function toggle(id:string){setItems((current)=>current.map((item)=>item.id===id?{...item,connected:!item.connected,lastSync:!item.connected?"Just now":"Paused"}:item));const item=items.find((i)=>i.id===id);setNotice(item?`${item.title} ${item.connected?"disconnected":"connected"}.`:"Integration updated.")}function sync(id:string){setItems((current)=>current.map((item)=>item.id===id?{...item,lastSync:"Just now"}:item));setNotice("Integration status refreshed.")}
+ return <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"><section className="rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm"><div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><Plug size={14}/> Connected services</div><h1 className="mt-3 text-3xl font-bold text-[var(--admin-primary-deep)]">Integrations</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--admin-muted)]">Review data ingestion, notifications, and external services supporting the Bahari monitoring network.</p><div className="mt-5 flex flex-wrap gap-4 text-sm"><span className="inline-flex items-center gap-2 text-emerald-700"><CheckCircle2 size={16}/>{items.filter((i)=>i.connected).length} connected</span><span className="inline-flex items-center gap-2 text-[var(--admin-muted)]"><Clock3 size={16}/>{items.filter((i)=>!i.connected).length} on standby</span></div></section>
+ {notice&&<div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+ <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{items.map((item)=>{const Icon=iconById[item.id as keyof typeof iconById]??Plug;return <Card key={item.id} className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="p-6"><div className="flex items-start justify-between"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]"><Icon size={22}/></span><span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${item.connected?"bg-emerald-50 text-emerald-700":"bg-slate-100 text-slate-600"}`}>{item.connected?"Connected":"Standby"}</span></div><h2 className="mt-5 text-lg font-semibold text-[var(--admin-primary-deep)]">{item.title}</h2><p className="mt-2 min-h-12 text-sm leading-6 text-[var(--admin-muted)]">{item.description}</p><div className="mt-5 rounded-xl bg-[var(--admin-surface)] p-3"><div className="text-xs text-[var(--admin-muted)]">Last activity</div><div className="mt-1 text-sm font-medium text-slate-800">{item.lastSync}</div><div className="mt-1 text-xs text-[var(--admin-muted)]">{item.category}</div></div><div className="mt-4 flex gap-2"><Button onClick={()=>toggle(item.id)} className={`flex-1 rounded-xl ${item.connected?"bg-white text-slate-700 border border-[var(--admin-border)] hover:bg-slate-50":"bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]"}`}>{item.connected?"Disconnect":"Connect"}</Button><Button onClick={()=>sync(item.id)} variant="outline" className="rounded-xl border-[var(--admin-border)]" aria-label={`Refresh ${item.title}`}><RefreshCw size={16}/></Button></div></CardContent></Card>})}</section>
+ </div>}

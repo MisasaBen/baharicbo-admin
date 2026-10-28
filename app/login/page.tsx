@@ -1,34 +1,10 @@
-export default function LoginPage() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-emerald-50">
+"use client";
 
-      <div className="bg-white shadow-lg rounded-xl p-8 w-[400px]">
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, Eye, EyeOff, Leaf, LockKeyhole, Mail } from "lucide-react";
+import { ADMIN_PRESENTATION_EMAIL, ADMIN_PRESENTATION_PASSWORD } from "@/lib/constants";
 
-        <h1 className="text-xl font-bold text-emerald-800 mb-6">
-          Bahari Admin Login
-        </h1>
-
-        <form className="space-y-4">
-
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full border rounded-lg px-3 py-2"
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full border rounded-lg px-3 py-2"
-          />
-
-          <button className="w-full bg-emerald-700 text-white py-2 rounded-lg hover:bg-emerald-800">
-            Login
-          </button>
-
-        </form>
-
-      </div>
-    </div>
-  );
+export default function LoginPage(){const router=useRouter();const [email,setEmail]=useState("");const [password,setPassword]=useState("");const [showPassword,setShowPassword]=useState(false);const [error,setError]=useState("");const [busy,setBusy]=useState(false);function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setError("");if(email.trim().toLowerCase()!==ADMIN_PRESENTATION_EMAIL||password!==ADMIN_PRESENTATION_PASSWORD){setError("The email or password is incorrect.");return}setBusy(true);sessionStorage.setItem("bahari-admin-session","active");router.push("/dashboard");}
+ return <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f1f8f4] px-4 py-10"><div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-emerald-200/40 blur-3xl"/><div className="absolute -bottom-24 -right-16 h-96 w-96 rounded-full bg-teal-100/70 blur-3xl"/><div className="relative grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/10 md:grid-cols-2"><section className="hidden flex-col justify-between bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-800 p-10 text-white md:flex"><div><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15"><Leaf size={25}/></div><p className="mt-8 text-xs font-semibold uppercase tracking-[0.25em] text-emerald-100">Bahari CBO Network</p><h1 className="mt-4 text-4xl font-bold leading-tight">Better data.<br/>Healthier oceans.<br/>Stronger communities.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-emerald-50/85">A unified workspace for coastal monitoring, aquaculture sites, environmental alerts, and farmer support.</p></div><div className="rounded-2xl border border-white/15 bg-white/10 p-4"><p className="text-sm font-semibold">Blue Empowerment Project</p><p className="mt-1 text-xs text-emerald-50/80">Coastal aquaculture monitoring and community-led resilience.</p></div></section><section className="p-7 sm:p-10"><div className="mx-auto max-w-sm"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)] md:hidden"><Leaf size={24}/></div><p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--admin-primary)]">Administrator workspace</p><h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--admin-primary-deep)]">Welcome back</h2><p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">Sign in to manage monitoring operations and project activity.</p><form onSubmit={submit} className="mt-8 space-y-5"><label className="block text-sm font-medium text-slate-700">Email address<span className="relative mt-2 block"><Mail size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input required type="email" autoComplete="username" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="admin@baharicbo.org" className="h-12 w-full rounded-xl border border-[var(--admin-border)] bg-white pl-10 pr-3 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"/></span></label><label className="block text-sm font-medium text-slate-700">Password<span className="relative mt-2 block"><LockKeyhole size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input required type={showPassword?"text":"password"} autoComplete="current-password" value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Enter your password" className="h-12 w-full rounded-xl border border-[var(--admin-border)] bg-white pl-10 pr-11 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"/><button type="button" onClick={()=>setShowPassword((v)=>!v)} aria-label={showPassword?"Hide password":"Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></span></label>{error&&<p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}<button type="submit" disabled={busy} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--admin-primary)] font-semibold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-[var(--admin-primary-deep)] disabled:opacity-70">{busy?"Signing in…":"Sign in"}<ArrowRight size={17}/></button></form><p className="mt-6 text-center text-xs leading-5 text-[var(--admin-muted)]">Authorized access for Bahari CBO Network personnel.</p></div></section></div></main>
 }

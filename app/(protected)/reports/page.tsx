@@ -1,131 +1,16 @@
-import { FileBarChart, Download, Calendar } from "lucide-react"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Calendar, Download, Eye, FileBarChart, FileSpreadsheet, Waves } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { reports as initialReports, sites, type PlatformReport } from "@/lib/mock-data";
 
-const reports = [
-  {
-    id: "R01",
-    title: "Weekly Environmental Summary",
-    site: "IMTA Cage 1",
-    date: "2026-03-10",
-    status: "Generated",
-  },
-  {
-    id: "R02",
-    title: "Monthly Water Quality Analysis",
-    site: "Seaweed Line A",
-    date: "2026-03-01",
-    status: "Generated",
-  },
-]
-
-export default function ReportsPage() {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-
-      <section className="mb-8">
-        <h1 className="text-2xl font-bold text-[var(--admin-primary-deep)]">
-          Reports
-        </h1>
-
-        <p className="text-sm text-[var(--admin-muted)]">
-          Generate and download environmental monitoring reports.
-        </p>
-      </section>
-
-      {/* Quick generation */}
-      <section className="grid md:grid-cols-3 gap-6 mb-10">
-
-        <ReportCard
-          title="Weekly Monitoring Report"
-          description="Summarizes environmental metrics for the past week."
-        />
-
-        <ReportCard
-          title="Monthly Water Quality Report"
-          description="Detailed analysis of pH, temperature and salinity trends."
-        />
-
-        <ReportCard
-          title="Custom Date Range"
-          description="Generate a report for a selected time period."
-        />
-
-      </section>
-
-      {/* Generated reports */}
-      <section className="space-y-4">
-
-        {reports.map(report => (
-          <ReportRow key={report.id} report={report} />
-        ))}
-
-      </section>
-
-    </div>
-  )
-}
-
-function ReportCard({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm">
-      <CardContent className="p-6 space-y-3">
-
-        <div className="flex items-center gap-3">
-          <FileBarChart size={18} className="text-[var(--admin-primary)]" />
-          <div className="font-semibold text-[var(--admin-primary-deep)]">
-            {title}
-          </div>
-        </div>
-
-        <div className="text-sm text-[var(--admin-muted)]">
-          {description}
-        </div>
-
-        <Button className="rounded-xl bg-[var(--admin-primary)] text-white">
-          Generate Report
-        </Button>
-
-      </CardContent>
-    </Card>
-  )
-}
-
-function ReportRow({ report }: { report: any }) {
-  return (
-    <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm">
-      <CardContent className="p-5 flex items-center justify-between">
-
-        <div>
-          <div className="font-semibold text-[var(--admin-primary-deep)]">
-            {report.title}
-          </div>
-
-          <div className="text-xs text-[var(--admin-muted)]">
-            {report.site} • {report.date}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-
-          <Button size="sm" variant="outline" className="rounded-xl">
-            <Calendar size={14} /> View
-          </Button>
-
-          <Button size="sm" className="rounded-xl bg-[var(--admin-primary)] text-white">
-            <Download size={14} /> Download
-          </Button>
-
-        </div>
-
-      </CardContent>
-    </Card>
-  )
-}
+export default function ReportsPage(){const [items,setItems]=useState<PlatformReport[]>(initialReports);const [selected,setSelected]=useState<PlatformReport|null>(null);const [notice,setNotice]=useState("");function generate(title:string,site:string){const report:PlatformReport={id:`R-${String(Date.now()).slice(-5)}`,title,site,date:new Date().toISOString().slice(0,10),status:"Ready"};setItems((current)=>[report,...current]);setNotice(`${title} is ready to view or download.`);setSelected(report)}function download(report:PlatformReport){const rows=[["Report ID","Title","Site","Date","Status"],[report.id,report.title,report.site,report.date,report.status],[],["Site","County","Temperature (C)","pH","Salinity (ppt)","Turbidity (NTU)","Battery (%)","Signal (%)"],...sites.filter((s)=>report.site==="All monitoring sites"||report.site===s.county+" Coast"||report.site.includes(s.county)||report.site===s.location).map((s)=>[s.name,s.county,s.temperature,s.ph,s.salinity,s.turbidity,s.battery,s.signal])];const csv=rows.map((row)=>row.map((cell)=>`"${String(cell??"").replace(/"/g,'""')}"`).join(",")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`${report.id.toLowerCase()}-${report.title.toLowerCase().replace(/[^a-z0-9]+/g,"-")}.csv`;a.click();URL.revokeObjectURL(url);setNotice(`${report.title} downloaded.`)}
+ return <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"><section className="rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm"><div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><FileBarChart size={14}/> Reporting and insights</div><h1 className="mt-3 text-3xl font-bold text-[var(--admin-primary-deep)]">Reports</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--admin-muted)]">Generate site summaries, review environmental trends, and export monitoring information for project reporting.</p></section>
+ {notice&&<div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+ <section className="grid gap-4 md:grid-cols-3"><ReportCard icon={<Waves size={19}/>} title="Weekly monitoring report" description="A concise view of site readings, connectivity, and recent alert activity." onClick={()=>generate("Weekly Monitoring Report","All monitoring sites")}/><ReportCard icon={<FileBarChart size={19}/>} title="Water quality summary" description="Temperature, pH, salinity, and turbidity across coastal sites." onClick={()=>generate("Water Quality Summary","All monitoring sites")}/><ReportCard icon={<FileSpreadsheet size={19}/>} title="Connectivity report" description="Device availability, battery status, and signal-strength overview." onClick={()=>generate("Connectivity and Device Health","All monitoring sites")}/></section>
+ <Card className="overflow-hidden rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="p-0"><div className="flex items-center justify-between border-b border-[var(--admin-border)] p-5"><div><h2 className="font-semibold text-[var(--admin-primary-deep)]">Report library</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">{items.length} available reports</p></div><span className="rounded-xl bg-[var(--admin-primary-soft)] px-3 py-2 text-sm font-semibold text-[var(--admin-primary)]">Latest activity</span></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-[var(--admin-surface)] text-xs uppercase tracking-wide text-[var(--admin-muted)]"><tr><th className="px-5 py-4 font-medium">Report</th><th className="px-5 py-4 font-medium">Coverage</th><th className="px-5 py-4 font-medium">Generated</th><th className="px-5 py-4 font-medium">Status</th><th className="px-5 py-4 font-medium">Actions</th></tr></thead><tbody>{items.map((report)=><tr key={report.id} className="border-t border-slate-100"><td className="px-5 py-4"><div className="font-semibold text-slate-800">{report.title}</div><div className="mt-1 text-xs text-[var(--admin-muted)]">{report.id}</div></td><td className="px-5 py-4 text-slate-600">{report.site}</td><td className="whitespace-nowrap px-5 py-4 text-slate-600">{report.date}</td><td className="px-5 py-4"><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{report.status}</span></td><td className="px-5 py-4"><div className="flex gap-2"><Button size="sm" variant="outline" onClick={()=>setSelected(report)} className="rounded-lg border-[var(--admin-border)]"><Eye size={14} className="mr-1"/>View</Button><Button size="sm" onClick={()=>download(report)} className="rounded-lg bg-[var(--admin-primary)] text-white"><Download size={14} className="mr-1"/>CSV</Button></div></td></tr>)}</tbody></table></div></CardContent></Card>
+ {selected&&<Card className="rounded-2xl border-emerald-200 bg-emerald-50/60"><CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Report preview · {selected.id}</p><h2 className="mt-1 text-lg font-bold text-[var(--admin-primary-deep)]">{selected.title}</h2><p className="mt-1 text-sm text-slate-600">Coverage: {selected.site} · Generated {selected.date}. Export the report as a CSV for further analysis.</p></div><div className="flex gap-2"><Button onClick={()=>selected&&download(selected)} className="rounded-xl bg-[var(--admin-primary)] text-white"><Download size={15} className="mr-2"/>Download CSV</Button><Button variant="outline" onClick={()=>setSelected(null)} className="rounded-xl border-[var(--admin-border)]">Close</Button></div></CardContent></Card>}
+ </div>}
+function ReportCard({icon,title,description,onClick}:{icon:React.ReactNode;title:string;description:string;onClick:()=>void}){return <Card className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="flex h-full flex-col p-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]">{icon}</span><h2 className="mt-4 font-semibold text-[var(--admin-primary-deep)]">{title}</h2><p className="mt-2 flex-1 text-sm leading-6 text-[var(--admin-muted)]">{description}</p><Button onClick={onClick} className="mt-5 rounded-xl bg-[var(--admin-primary)] text-white">Generate report</Button></CardContent></Card>}

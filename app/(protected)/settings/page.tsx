@@ -1,47 +1,17 @@
-import { Settings } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+"use client";
 
-export default function SettingsPage() {
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+import { useState } from "react";
+import { CheckCircle2, Mail, Save, Settings, ShieldCheck } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { DEFAULT_ALERT_INTERVAL_MINUTES, ORGANIZATION_EMAIL, ORGANIZATION_NAME } from "@/lib/constants";
 
-      <h1 className="text-2xl font-bold text-[var(--admin-primary-deep)] mb-6">
-        System Settings
-      </h1>
-
-      <Card className="rounded-3xl border-[var(--admin-border)]">
-        <CardContent className="p-6 space-y-6">
-
-          <div>
-            <label className="text-sm text-[var(--admin-muted)]">
-              Organization Name
-            </label>
-            <Input defaultValue="Bahari CBO Network" />
-          </div>
-
-          <div>
-            <label className="text-sm text-[var(--admin-muted)]">
-              Contact Email
-            </label>
-            <Input defaultValue="info@baharicbo.org" />
-          </div>
-
-          <div>
-            <label className="text-sm text-[var(--admin-muted)]">
-              Default Alert Threshold Interval
-            </label>
-            <Input defaultValue="5 minutes" />
-          </div>
-
-          <Button className="rounded-xl bg-[var(--admin-primary)] text-white">
-            Save Settings
-          </Button>
-
-        </CardContent>
-      </Card>
-
-    </div>
-  )
-}
+export default function SettingsPage(){const [organization,setOrganization]=useState(ORGANIZATION_NAME);const [email,setEmail]=useState(ORGANIZATION_EMAIL);const [interval,setInterval]=useState(String(DEFAULT_ALERT_INTERVAL_MINUTES));const [timezone,setTimezone]=useState("Africa/Nairobi");const [saved,setSaved]=useState(false);function save(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setSaved(true)}
+ return <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"><section className="rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm"><div className="flex items-start gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]"><Settings size={22}/></span><div><h1 className="text-3xl font-bold text-[var(--admin-primary-deep)]">System settings</h1><p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">Manage organization details and the default monitoring preferences for this workspace.</p></div></div></section>
+ {saved&&<div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><CheckCircle2 size={17}/> Settings saved for this session.</div>}
+ <form onSubmit={save} className="space-y-6"><Card className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="space-y-5 p-6"><div><h2 className="font-semibold text-[var(--admin-primary-deep)]">Organization profile</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">The contact information displayed across the platform.</p></div><label className="block text-sm font-medium text-slate-700">Organization name<Input required value={organization} onChange={(e)=>{setOrganization(e.target.value);setSaved(false)}} className="mt-1.5 h-11 rounded-xl"/></label><label className="block text-sm font-medium text-slate-700">Contact email<span className="relative mt-1.5 block"><Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><Input required type="email" value={email} onChange={(e)=>{setEmail(e.target.value);setSaved(false)}} className="h-11 rounded-xl pl-9"/></span></label></CardContent></Card>
+ <Card className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="space-y-5 p-6"><div><h2 className="font-semibold text-[var(--admin-primary-deep)]">Monitoring preferences</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">Default cadence and local time settings for operations views.</p></div><div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Alert evaluation interval (minutes)<Input required type="number" min="1" max="60" value={interval} onChange={(e)=>{setInterval(e.target.value);setSaved(false)}} className="mt-1.5 h-11 rounded-xl"/></label><label className="block text-sm font-medium text-slate-700">Time zone<select value={timezone} onChange={(e)=>{setTimezone(e.target.value);setSaved(false)}} className="mt-1.5 h-11 w-full rounded-xl border border-[var(--admin-border)] bg-white px-3"><option value="Africa/Nairobi">East Africa Time (Nairobi)</option><option value="UTC">UTC</option></select></label></div></CardContent></Card>
+ <Card className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="flex items-start gap-3 p-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><ShieldCheck size={19}/></span><div><h2 className="font-semibold text-slate-800">Access and data protection</h2><p className="mt-1 text-sm leading-6 text-[var(--admin-muted)]">Administrator access should be limited to authorized project personnel. Account permissions and saved settings will be enforced by the connected backend.</p></div></CardContent></Card>
+ <div className="flex flex-wrap items-center gap-3"><Button type="submit" className="rounded-xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]"><Save size={16} className="mr-2"/>Save settings</Button><p className="text-xs text-[var(--admin-muted)]">Changes are held in this browser session.</p></div></form>
+ </div>}

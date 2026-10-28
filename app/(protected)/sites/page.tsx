@@ -1,139 +1,42 @@
-import Link from "next/link";
-import { MapPinned, Plus, Search, Waves, AlertTriangle } from "lucide-react";
+"use client";
 
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { AlertTriangle, MapPinned, Plus, Search, Waves, X, Thermometer, BatteryCharging } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const sites = [
-  {
-    id: "imta-cage-1",
-    name: "IMTA Cage 1",
-    location: "Kilifi Coast",
-    sensors: 4,
-    lastUpdate: "5 minutes ago",
-    status: "warning",
-  },
-  {
-    id: "seaweed-line-a",
-    name: "Seaweed Line A",
-    location: "Kilifi Coast",
-    sensors: 2,
-    lastUpdate: "1 minute ago",
-    status: "active",
-  },
-  {
-    id: "seaweed-line-b",
-    name: "Seaweed Line B",
-    location: "Kilifi Coast",
-    sensors: 2,
-    lastUpdate: "3 minutes ago",
-    status: "active",
-  },
-];
+import { sites as initialSites, type MonitoringSite, type SiteStatus } from "@/lib/mock-data";
 
 export default function SitesPage() {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      {/* Page intro */}
-      <section className="mb-8 flex flex-col gap-4 rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-            <MapPinned size={14} />
-            Monitoring infrastructure
-          </div>
+  const [siteList, setSiteList] = useState<MonitoringSite[]>(initialSites);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
+  const [county, setCounty] = useState("Kilifi");
+  const [notice, setNotice] = useState("");
+  const filtered = useMemo(() => siteList.filter((site) => `${site.name} ${site.location} ${site.county} ${site.code}`.toLowerCase().includes(search.toLowerCase()) && (statusFilter === "all" || site.status === statusFilter)), [siteList, search, statusFilter]);
 
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-[var(--admin-primary-deep)]">
-            Monitored Sites
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">
-            Manage aquaculture monitoring locations, sensors, and operational
-            status across the Bahari Blue Empowerment network.
-          </p>
-        </div>
-
-        <Button className="rounded-2xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]">
-          <Plus size={16} />
-          Add Site
-        </Button>
-      </section>
-
-      {/* Search / filter */}
-      <section className="mb-8 flex flex-col gap-4 rounded-3xl border border-[var(--admin-border)] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex w-full max-w-sm items-center gap-2">
-          <Search size={18} className="text-slate-400" />
-          <Input placeholder="Search sites..." className="h-10 rounded-xl" />
-        </div>
-
-        <div className="text-sm text-[var(--admin-muted)]">
-          {sites.length} sites monitored
-        </div>
-      </section>
-
-      {/* Sites grid */}
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {sites.map((site) => (
-          <Link key={site.id} href={`/sites/${site.id}`}>
-            <Card className="cursor-pointer rounded-3xl border-[var(--admin-border)] bg-white shadow-sm transition hover:shadow-md">
-              <CardContent className="p-6">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-lg font-semibold text-slate-900">
-                      {site.name}
-                    </div>
-                    <div className="mt-1 text-sm text-[var(--admin-muted)]">
-                      {site.location}
-                    </div>
-                  </div>
-
-                  <StatusBadge status={site.status} />
-                </div>
-
-                {/* Sensors */}
-                <div className="mt-6 flex items-center gap-3 text-sm text-slate-600">
-                  <Waves size={18} />
-                  {site.sensors} sensors connected
-                </div>
-
-                {/* Last update */}
-                <div className="mt-3 text-sm text-[var(--admin-muted)]">
-                  Last data update: {site.lastUpdate}
-                </div>
-
-                {/* Footer */}
-                <div className="mt-6 flex items-center justify-between text-sm">
-                  <span className="text-[var(--admin-muted)]">
-                    View site details
-                  </span>
-
-                  <span className="font-medium text-[var(--admin-primary)]">
-                    Open →
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </section>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  if (status === "warning") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-        <AlertTriangle size={12} />
-        Warning
-      </span>
-    );
+  function addSite(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!name.trim() || !location.trim()) return;
+    const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString().slice(-4)}`;
+    const newSite: MonitoringSite = { id, code: `BCN-${county.slice(0,3).toUpperCase()}-${String(siteList.length + 1).padStart(3,"0")}`, name: name.trim(), location: location.trim(), county, farmer: "Unassigned", sensors: 3, lastUpdate: "Just added", status: "active", temperature: 27.5, ph: 7.8, salinity: 33, turbidity: 4.5, battery: 100, signal: 100 };
+    setSiteList((current) => [newSite, ...current]); setName(""); setLocation(""); setShowForm(false); setNotice(`${newSite.name} has been added to this view.`);
   }
 
-  return (
-    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-      Active
-    </span>
-  );
+  return <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <section className="flex flex-col gap-4 rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><MapPinned size={14}/> Monitoring infrastructure</div><h1 className="mt-3 text-3xl font-bold text-[var(--admin-primary-deep)]">Monitoring sites</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--admin-muted)]">Manage coastal locations, review sensor readings, and monitor device health across the network.</p></div><Button onClick={() => {setShowForm((value) => !value);setNotice("");}} className="rounded-xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]">{showForm ? <X size={16} className="mr-2"/> : <Plus size={16} className="mr-2"/>}{showForm ? "Cancel" : "Add site"}</Button></section>
+    {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+    {showForm && <Card className="rounded-2xl border-[var(--admin-border)]"><CardContent className="p-5"><h2 className="mb-4 font-semibold text-[var(--admin-primary-deep)]">Register a monitoring site</h2><form onSubmit={addSite} className="grid gap-4 md:grid-cols-4"><label className="text-sm text-slate-700">Site name<Input required value={name} onChange={(e)=>setName(e.target.value)} placeholder="e.g. Coral Bay Cage 1" className="mt-1 rounded-xl"/></label><label className="text-sm text-slate-700">Location<Input required value={location} onChange={(e)=>setLocation(e.target.value)} placeholder="Creek, bay, or landing site" className="mt-1 rounded-xl"/></label><label className="text-sm text-slate-700">County<select value={county} onChange={(e)=>setCounty(e.target.value)} className="mt-1 h-10 w-full rounded-xl border border-[var(--admin-border)] bg-white px-3"><option>Kilifi</option><option>Kwale</option><option>Mombasa</option></select></label><div className="flex items-end"><Button type="submit" className="w-full rounded-xl bg-[var(--admin-primary)] text-white">Add site</Button></div></form></CardContent></Card>}
+    <section className="grid gap-4 sm:grid-cols-3"><Summary title="Total sites" value={String(siteList.length)} hint="Registered locations"/><Summary title="Reporting" value={String(siteList.filter((s)=>s.status!=="offline").length)} hint="Devices sending updates"/><Summary title="Offline" value={String(siteList.filter((s)=>s.status==="offline").length)} hint="Connectivity follow-up"/></section>
+    <section className="flex flex-col gap-3 rounded-2xl border border-[var(--admin-border)] bg-white p-4 shadow-sm md:flex-row md:items-center"><div className="relative flex-1"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search site, code, or location..." className="rounded-xl pl-9"/></div><select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="h-10 rounded-xl border border-[var(--admin-border)] bg-white px-3 text-sm"><option value="all">All statuses</option><option value="active">Online</option><option value="warning">Attention</option><option value="offline">Offline</option></select><span className="text-sm text-[var(--admin-muted)]">Showing {filtered.length} of {siteList.length} sites</span></section>
+    <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filtered.map((site)=>{const content=<Card className="h-full rounded-2xl border-[var(--admin-border)] bg-white shadow-sm transition hover:shadow-md"><CardContent className="p-5"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--admin-muted)]">{site.code}</p><h2 className="mt-1 text-lg font-semibold text-[var(--admin-primary-deep)]">{site.name}</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">{site.location}, {site.county}</p></div><StatusBadge status={site.status}/></div><div className="mt-5 grid grid-cols-2 gap-3"><SmallStat icon={<Thermometer size={15}/>} label="Temperature" value={`${site.temperature.toFixed(1)} °C`}/><SmallStat icon={<BatteryCharging size={15}/>} label="Battery" value={`${site.battery}%`}/></div><div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 text-sm"><span className="flex items-center gap-2 text-[var(--admin-muted)]"><Waves size={15}/>{site.sensors} sensor channels</span><span className="font-semibold text-[var(--admin-primary)]">{initialSites.some((s)=>s.id===site.id)?"View details →":"Added"}</span></div><p className="mt-2 text-xs text-[var(--admin-muted)]">Last update: {site.lastUpdate}</p></CardContent></Card>;return initialSites.some((s)=>s.id===site.id)?<Link key={site.id} href={`/sites/${site.id}`}>{content}</Link>:<div key={site.id}>{content}</div>;})}</section>
+    {filtered.length===0 && <div className="rounded-2xl border border-dashed border-[var(--admin-border)] bg-white p-12 text-center"><MapPinned className="mx-auto text-slate-400" size={28}/><p className="mt-3 font-semibold text-slate-800">No matching sites</p><p className="mt-1 text-sm text-[var(--admin-muted)]">Try another search or status filter.</p></div>}
+  </div>;
 }
+function Summary({title,value,hint}:{title:string;value:string;hint:string}){return <Card className="rounded-2xl border-[var(--admin-border)] bg-white"><CardContent className="p-4"><p className="text-sm text-[var(--admin-muted)]">{title}</p><p className="mt-1 text-2xl font-bold text-[var(--admin-primary-deep)]">{value}</p><p className="mt-1 text-xs text-[var(--admin-muted)]">{hint}</p></CardContent></Card>}
+function SmallStat({icon,label,value}:{icon:React.ReactNode;label:string;value:string}){return <div className="rounded-xl bg-[var(--admin-surface)] p-3"><div className="flex items-center gap-1.5 text-xs text-[var(--admin-muted)]">{icon}{label}</div><div className="mt-1 font-semibold text-slate-800">{value}</div></div>}
+function StatusBadge({status}:{status:SiteStatus}){const cls=status==="offline"?"bg-rose-50 text-rose-700":status==="warning"?"bg-amber-50 text-amber-800":"bg-emerald-50 text-emerald-700";const label=status==="offline"?"Offline":status==="warning"?"Attention":"Online";return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cls}`}>{status==="offline"?<AlertTriangle size={12}/>:<span className="h-1.5 w-1.5 rounded-full bg-current"/>}{label}</span>}

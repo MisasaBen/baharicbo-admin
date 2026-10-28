@@ -1,364 +1,43 @@
-import {
-  AlertTriangle,
-  Bell,
-  CheckCircle2,
-  Database,
-  Link2,
-  MapPinned,
-  ShieldCheck,
-  Users,
-  Waves,
-} from "lucide-react";
-
+import Link from "next/link";
+import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Bell, CheckCircle2, Database, MapPinned, ShieldCheck, Users, Waves, Wifi, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { alerts, integrations, sites, users, weeklyReadings } from "@/lib/mock-data";
 
-const statCards = [
-  {
-    title: "Monitored Sites",
-    value: "3",
-    hint: "Active locations",
-    icon: MapPinned,
-    tone: "default",
-  },
-  {
-    title: "Active Alerts",
-    value: "1",
-    hint: "Needs review",
-    icon: AlertTriangle,
-    tone: "warning",
-  },
-  {
-    title: "Platform Users",
-    value: "12",
-    hint: "Across all roles",
-    icon: Users,
-    tone: "default",
-  },
-  {
-    title: "Connected Sensors",
-    value: "8",
-    hint: "Reporting data",
-    icon: Database,
-    tone: "default",
-  },
-];
-
-const sitesNeedingAttention = [
-  {
-    site: "IMTA Cage 1",
-    issue: "Temperature briefly exceeded preferred range",
-    status: "Warning",
-  },
-  {
-    site: "Seaweed Line A",
-    issue: "Turbidity trend increasing over recent readings",
-    status: "Attention",
-  },
-];
-
-const recentAlerts = [
-  {
-    title: "Temperature above preferred range",
-    site: "IMTA Cage 1",
-    time: "Today, 11:20 AM",
-    severity: "Warning",
-  },
-  {
-    title: "Turbidity increasing",
-    site: "Seaweed Line A",
-    time: "Today, 09:10 AM",
-    severity: "Warning",
-  },
-  {
-    title: "Previous fluctuation resolved",
-    site: "IMTA Cage 2",
-    time: "Yesterday, 04:35 PM",
-    severity: "Resolved",
-  },
-];
-
-const integrationSummary = [
-  { label: "Wireless Planet API", value: "Pending live connection" },
-  { label: "SMS/Alert Gateway", value: "Not yet configured" },
-  { label: "Last sync", value: "Mock environment" },
-];
+const activeAlerts = alerts.filter((alert) => alert.status === "active");
+const connectedSites = sites.filter((site) => site.status !== "offline");
+const attentionSites = sites.filter((site) => site.status !== "active");
+const points = weeklyReadings.map((point, index) => `${index * 48},${80 - (point.value - 25) * 10}`).join(" ");
 
 export default function DashboardPage() {
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      {/* Intro */}
-      <section className="mb-8 flex flex-col gap-4 rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-            <ShieldCheck size={14} />
-            Administrative overview
-          </div>
+  const stats = [
+    { title: "Monitored Sites", value: String(sites.length), hint: "Across Kilifi and Kwale", icon: MapPinned, accent: "emerald" },
+    { title: "Reporting Devices", value: String(connectedSites.length), hint: `${sites.length - connectedSites.length} currently offline`, icon: Wifi, accent: "blue" },
+    { title: "Active Alerts", value: String(activeAlerts.length), hint: `${activeAlerts.filter((item) => item.severity === "critical").length} require priority review`, icon: AlertTriangle, accent: "amber" },
+    { title: "Platform Users", value: String(users.filter((user) => user.status === "active").length), hint: "Farmers and operations team", icon: Users, accent: "violet" },
+  ];
 
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-[var(--admin-primary-deep)]">
-            Welcome back.
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">
-            Review monitored sites, alert activity, user access, and integration readiness across the Bahari Blue Empowerment platform.
-          </p>
-        </div>
+  return <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <section className="flex flex-col gap-5 rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <div className="max-w-3xl"><div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><ShieldCheck size={14}/> Network operations</div><h1 className="mt-4 text-3xl font-bold tracking-tight text-[var(--admin-primary-deep)]">Good morning, Administrator</h1><p className="mt-2 text-sm leading-6 text-[var(--admin-muted)]">A consolidated view of coastal monitoring sites, device health, environmental conditions, and farmer access.</p></div>
+      <div className="flex flex-wrap gap-3"><Link href="/alerts"><Button className="rounded-xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]"><Bell size={16} className="mr-2"/> Review alerts</Button></Link><Link href="/reports"><Button variant="outline" className="rounded-xl border-[var(--admin-border)]">View reports</Button></Link></div>
+    </section>
 
-        <div className="flex flex-wrap gap-3">
-          <Button className="rounded-2xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]">
-            Review alerts
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-2xl border-[var(--admin-border)] bg-white hover:bg-slate-50"
-          >
-            View reports
-          </Button>
-        </div>
-      </section>
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map((stat) => { const Icon = stat.icon; return <Card key={stat.title} className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="p-5"><div className="flex items-start justify-between"><div><p className="text-sm font-medium text-[var(--admin-muted)]">{stat.title}</p><p className="mt-3 text-3xl font-bold tracking-tight text-[var(--admin-primary-deep)]">{stat.value}</p><p className="mt-2 text-xs text-[var(--admin-muted)]">{stat.hint}</p></div><span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]"><Icon size={21}/></span></div></CardContent></Card>; })}</section>
 
-      {/* Stats */}
-      <section className="mb-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          const iconTone =
-            card.tone === "warning"
-              ? "bg-amber-50 text-amber-700"
-              : "bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]";
+    <section className="grid gap-6 xl:grid-cols-5">
+      <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-3"><CardContent className="p-6"><div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-semibold text-[var(--admin-primary-deep)]">Environmental overview</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">Average temperature across the last seven reporting days</p></div><span className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">27.5 °C <span className="ml-1 inline-flex items-center text-xs"><ArrowDownRight size={14}/> 0.4°</span></span></div><div className="mt-5 rounded-2xl bg-[var(--admin-surface)] p-4"><svg viewBox="0 0 288 100" role="img" aria-label="Weekly average temperature trend" className="h-44 w-full overflow-visible"><defs><linearGradient id="temperatureFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#10b981" stopOpacity=".22"/><stop offset="100%" stopColor="#10b981" stopOpacity="0"/></linearGradient></defs>{[20,40,60,80].map((y)=><line key={y} x1="0" y1={y} x2="288" y2={y} stroke="#dce7e0" strokeDasharray="3 4"/>)}<polygon points={`0,100 ${points} 288,100`} fill="url(#temperatureFill)"/><polyline points={points} fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>{weeklyReadings.map((point,index)=><circle key={point.day} cx={index*48} cy={80-(point.value-25)*10} r="3" fill="#047857" stroke="white" strokeWidth="1.5"/>)}</svg><div className="mt-2 grid grid-cols-7 text-center text-xs text-[var(--admin-muted)]">{weeklyReadings.map((point)=><span key={point.day}>{point.day}</span>)}</div></div><div className="mt-4 grid grid-cols-3 gap-3"><MiniMetric label="Average pH" value="7.8" trend="Within range"/><MiniMetric label="Average salinity" value="33.1 ppt" trend="Stable"/><MiniMetric label="Sites reporting" value={`${connectedSites.length}/${sites.length}`} trend="Network status"/></div></CardContent></Card>
 
-          return (
-            <Card
-              key={card.title}
-              className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="text-sm font-medium text-[var(--admin-muted)]">
-                      {card.title}
-                    </div>
-                    <div className="mt-3 text-4xl font-extrabold tracking-tight text-[var(--admin-primary-deep)]">
-                      {card.value}
-                    </div>
-                    <div className="mt-2 text-sm text-slate-500">
-                      {card.hint}
-                    </div>
-                  </div>
+      <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-2"><CardContent className="p-6"><div className="mb-5 flex items-start justify-between"><div><h2 className="text-lg font-semibold text-[var(--admin-primary-deep)]">Site connectivity</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">Latest device status by monitoring location</p></div><Link href="/sites" className="text-sm font-semibold text-[var(--admin-primary)] hover:underline">All sites</Link></div><div className="space-y-4">{sites.slice(0,5).map((site)=><div key={site.id} className="flex items-center gap-3"><span className={`grid h-9 w-9 place-items-center rounded-xl ${site.status === "offline" ? "bg-rose-50 text-rose-600" : site.status === "warning" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{site.status === "offline" ? <Wifi size={17}/> : <Waves size={17}/>}</span><div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold text-slate-800">{site.name}</div><div className="text-xs text-[var(--admin-muted)]">{site.location} · {site.lastUpdate}</div></div><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${site.status === "offline" ? "bg-rose-50 text-rose-700" : site.status === "warning" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{site.status === "offline" ? "Offline" : site.status === "warning" ? "Attention" : "Online"}</span></div>)}</div></CardContent></Card>
+    </section>
 
-                  <div className={`grid h-12 w-12 place-items-center rounded-2xl ${iconTone}`}>
-                    <Icon size={22} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </section>
-
-      {/* Main content grid */}
-      <section className="grid gap-6 xl:grid-cols-3">
-        {/* Sites needing attention */}
-        <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-2">
-          <CardContent className="p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-[var(--admin-primary-deep)]">
-                  Sites needing attention
-                </h3>
-                <p className="text-sm text-[var(--admin-muted)]">
-                  Recent site activity requiring review or follow-up
-                </p>
-              </div>
-
-              <Button
-                variant="outline"
-                className="rounded-2xl border-[var(--admin-border)] bg-white hover:bg-slate-50"
-              >
-                View all sites
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {sitesNeedingAttention.map((item) => (
-                <div
-                  key={item.site}
-                  className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-5 py-4"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <div className="font-semibold text-slate-800">
-                        {item.site}
-                      </div>
-                      <div className="mt-1 text-sm leading-6 text-[var(--admin-muted)]">
-                        {item.issue}
-                      </div>
-                    </div>
-
-                    <StatusPill
-                      label={item.status}
-                      tone="warning"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Integration snapshot */}
-        <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-1">
-          <CardContent className="p-6">
-            <div className="mb-5 inline-flex items-center gap-2 font-semibold text-[var(--admin-primary-deep)]">
-              <Link2 size={18} />
-              Integration snapshot
-            </div>
-
-            <div className="space-y-4">
-              {integrationSummary.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-4"
-                >
-                  <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                    {item.label}
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-800">
-                    {item.value}
-                  </div>
-                </div>
-              ))}
-
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
-                <div className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700">
-                  <CheckCircle2 size={16} />
-                  Admin shell ready
-                </div>
-                <p className="mt-2 text-sm leading-6 text-slate-700">
-                  The control interface is prepared for site, user, and threshold management while backend services are finalized.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent alerts */}
-        <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-2">
-          <CardContent className="p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-[var(--admin-primary-deep)]">
-                  Recent alerts
-                </h3>
-                <p className="text-sm text-[var(--admin-muted)]">
-                  Most recent system events across monitored sites
-                </p>
-              </div>
-
-              <Button
-                variant="outline"
-                className="rounded-2xl border-[var(--admin-border)] bg-white hover:bg-slate-50"
-              >
-                Open alerts
-              </Button>
-            </div>
-
-            <div className="overflow-x-auto rounded-2xl border border-[var(--admin-border)]">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-[var(--admin-surface)]">
-                  <tr className="text-slate-500">
-                    <th className="px-4 py-3 font-medium">Alert</th>
-                    <th className="px-4 py-3 font-medium">Site</th>
-                    <th className="px-4 py-3 font-medium">Time</th>
-                    <th className="px-4 py-3 font-medium">Severity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentAlerts.map((row, index) => (
-                    <tr key={`${row.title}-${index}`} className="border-t border-[var(--admin-border)]">
-                      <td className="px-4 py-4 font-medium text-slate-800">
-                        {row.title}
-                      </td>
-                      <td className="px-4 py-4 text-[var(--admin-muted)]">
-                        {row.site}
-                      </td>
-                      <td className="px-4 py-4 text-[var(--admin-muted)]">
-                        {row.time}
-                      </td>
-                      <td className="px-4 py-4">
-                        <StatusPill
-                          label={row.severity}
-                          tone={row.severity === "Resolved" ? "normal" : "warning"}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick actions */}
-        <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-1">
-          <CardContent className="p-6">
-            <div className="mb-5 inline-flex items-center gap-2 font-semibold text-[var(--admin-primary-deep)]">
-              <Bell size={18} />
-              Quick actions
-            </div>
-
-            <div className="space-y-3">
-              <QuickAction title="Review active alerts" desc="Check site warnings and recent events." />
-              <QuickAction title="Manage thresholds" desc="Adjust parameter limits and alert rules." />
-              <QuickAction title="Open integrations" desc="Prepare API and sync configuration." />
-            </div>
-
-            <div className="mt-5 rounded-2xl border bg-[var(--admin-primary-soft)]/35 p-4">
-              <div className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--admin-primary-deep)]">
-                <Waves size={16} />
-                Platform note
-              </div>
-              <p className="mt-2 text-sm leading-6 text-slate-700">
-                This admin dashboard is currently powered by mock operational data and is ready for backend connection.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-    </div>
-  );
+    <section className="grid gap-6 xl:grid-cols-3">
+      <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm xl:col-span-2"><CardContent className="p-6"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-semibold text-[var(--admin-primary-deep)]">Recent alerts</h2><p className="mt-1 text-sm text-[var(--admin-muted)]">Latest events requiring operational awareness</p></div><Link href="/alerts"><Button variant="outline" className="rounded-xl border-[var(--admin-border)]">Open alerts</Button></Link></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead><tr className="border-b border-[var(--admin-border)] text-xs uppercase tracking-wide text-[var(--admin-muted)]"><th className="pb-3 pr-4 font-medium">Event</th><th className="pb-3 pr-4 font-medium">Site</th><th className="pb-3 pr-4 font-medium">Time</th><th className="pb-3 font-medium">Severity</th></tr></thead><tbody>{alerts.slice(0,5).map((alert)=><tr key={alert.id} className="border-b border-slate-100 last:border-0"><td className="py-4 pr-4"><div className="font-semibold text-slate-800">{alert.parameter} alert</div><div className="mt-1 text-xs text-[var(--admin-muted)]">{alert.description}</div></td><td className="py-4 pr-4 text-slate-600">{alert.site}</td><td className="whitespace-nowrap py-4 pr-4 text-xs text-[var(--admin-muted)]">{alert.time}</td><td className="py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${alert.status === "resolved" ? "bg-emerald-50 text-emerald-700" : alert.severity === "critical" ? "bg-rose-50 text-rose-700" : "bg-amber-50 text-amber-800"}`}>{alert.status === "resolved" ? "Resolved" : alert.severity === "critical" ? "Critical" : "Warning"}</span></td></tr>)}</tbody></table></div></CardContent></Card>
+      <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="p-6"><div className="mb-5 flex items-center gap-2 text-lg font-semibold text-[var(--admin-primary-deep)]"><Zap size={19}/> Operations snapshot</div><div className="space-y-4">{integrations.map((integration)=><div key={integration.id} className="flex items-start justify-between gap-3 rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4"><div><div className="font-medium text-slate-800">{integration.title}</div><div className="mt-1 text-xs text-[var(--admin-muted)]">Last sync: {integration.lastSync}</div></div><span className={`mt-0.5 rounded-full px-2 py-1 text-xs font-semibold ${integration.connected ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{integration.connected ? "Connected" : "Standby"}</span></div>)}<div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><div className="flex items-center gap-2 text-sm font-semibold text-emerald-800"><CheckCircle2 size={16}/> Platform overview</div><p className="mt-2 text-sm leading-6 text-emerald-900/80">Site monitoring, farmer access, and operational alerts are available from this workspace.</p><Link href="/integrations" className="mt-3 inline-block text-sm font-semibold text-emerald-800 hover:underline">Manage integrations →</Link></div></div></CardContent></Card>
+    </section>
+    <section className="grid gap-4 sm:grid-cols-3"><QuickLink href="/sites" icon={<MapPinned size={18}/>} title="Manage sites" description="Review locations, devices, and latest readings."/><QuickLink href="/users" icon={<Users size={18}/>} title="Manage users" description="Review farmer and operations-team access."/><QuickLink href="/thresholds" icon={<Activity size={18}/>} title="Alert thresholds" description="Review environmental operating ranges."/></section>
+  </div>;
 }
 
-function StatusPill({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "normal" | "warning";
-}) {
-  const classes =
-    tone === "normal"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : "border-amber-200 bg-amber-50 text-amber-700";
-
-  return (
-    <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold ${classes}`}>
-      {label}
-    </span>
-  );
-}
-
-function QuickAction({
-  title,
-  desc,
-}: {
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-4">
-      <div className="font-medium text-slate-800">{title}</div>
-      <div className="mt-1 text-sm leading-6 text-[var(--admin-muted)]">
-        {desc}
-      </div>
-    </div>
-  );
-}
+function MiniMetric({label,value,trend}:{label:string;value:string;trend:string}) { return <div className="rounded-xl border border-[var(--admin-border)] p-3"><div className="text-xs text-[var(--admin-muted)]">{label}</div><div className="mt-1 text-lg font-bold text-[var(--admin-primary-deep)]">{value}</div><div className="mt-1 text-xs text-emerald-700">{trend}</div></div>; }
+function QuickLink({href,icon,title,description}:{href:string;icon:React.ReactNode;title:string;description:string}) { return <Link href={href} className="group rounded-2xl border border-[var(--admin-border)] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]">{icon}</span><span className="font-semibold text-[var(--admin-primary-deep)]">{title}</span></div><p className="mt-3 text-sm leading-6 text-[var(--admin-muted)]">{description}</p></Link>; }

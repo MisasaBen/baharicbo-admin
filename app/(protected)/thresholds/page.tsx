@@ -1,133 +1,16 @@
-import { SlidersHorizontal, Thermometer, Droplets, Waves, Activity } from "lucide-react";
+"use client";
 
+import { useState } from "react";
+import { Activity, CheckCircle2, Droplets, RotateCcw, SlidersHorizontal, Thermometer, Waves } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { thresholds as defaults, type MonitoringThreshold } from "@/lib/mock-data";
 
-export default function ThresholdsPage() {
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-
-      {/* Page intro */}
-      <section className="mb-8 rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm">
-        <div className="flex items-start gap-3">
-          <SlidersHorizontal className="text-[var(--admin-primary)]" size={22} />
-
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--admin-primary-deep)]">
-              Monitoring Thresholds
-            </h1>
-
-            <p className="mt-1 text-sm text-[var(--admin-muted)]">
-              Configure environmental parameter limits. When sensor readings
-              exceed these thresholds the system will generate alerts.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Threshold grid */}
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-        <ThresholdCard
-          icon={<Thermometer size={20} />}
-          title="Temperature"
-          unit="°C"
-          min="24"
-          max="31"
-        />
-
-        <ThresholdCard
-          icon={<Droplets size={20} />}
-          title="pH"
-          unit=""
-          min="7.2"
-          max="8.6"
-        />
-
-        <ThresholdCard
-          icon={<Waves size={20} />}
-          title="Salinity"
-          unit="ppt"
-          min="28"
-          max="38"
-        />
-
-        <ThresholdCard
-          icon={<Activity size={20} />}
-          title="Turbidity"
-          unit="NTU"
-          min="0"
-          max="10"
-        />
-
-      </section>
-
-      {/* Actions */}
-      <section className="mt-8 flex gap-3">
-        <Button className="rounded-2xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]">
-          Save Changes
-        </Button>
-
-        <Button
-          variant="outline"
-          className="rounded-2xl border-[var(--admin-border)]"
-        >
-          Reset Defaults
-        </Button>
-      </section>
-    </div>
-  );
-}
-
-function ThresholdCard({
-  icon,
-  title,
-  unit,
-  min,
-  max,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  unit: string;
-  min: string;
-  max: string;
-}) {
-  return (
-    <Card className="rounded-3xl border-[var(--admin-border)] bg-white shadow-sm">
-      <CardContent className="p-6">
-
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-[var(--admin-muted)]">
-            {title}
-          </div>
-
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]">
-            {icon}
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-4">
-
-          <div>
-            <div className="text-xs text-[var(--admin-muted)]">Min</div>
-            <Input defaultValue={min} className="mt-1 h-10 rounded-xl" />
-          </div>
-
-          <div>
-            <div className="text-xs text-[var(--admin-muted)]">Max</div>
-            <Input defaultValue={max} className="mt-1 h-10 rounded-xl" />
-          </div>
-
-        </div>
-
-        {unit && (
-          <div className="mt-3 text-xs text-[var(--admin-muted)]">
-            Unit: {unit}
-          </div>
-        )}
-
-      </CardContent>
-    </Card>
-  );
-}
+const icons={temperature:Thermometer,ph:Droplets,salinity:Waves,turbidity:Activity};
+export default function ThresholdsPage(){const [values,setValues]=useState<MonitoringThreshold[]>(defaults.map((item)=>({...item})));const [saved,setSaved]=useState(false);function update(key:string,field:"min"|"max",value:string){setValues((current)=>current.map((item)=>item.key===key?{...item,[field]:value===""?0:Number(value)}:item));setSaved(false)}function save(){setSaved(true)}function reset(){setValues(defaults.map((item)=>({...item})));setSaved(false)}
+ return <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"><section className="rounded-3xl border border-[var(--admin-border)] bg-white p-6 shadow-sm"><div className="flex items-start gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]"><SlidersHorizontal size={22}/></span><div><h1 className="text-3xl font-bold text-[var(--admin-primary-deep)]">Monitoring thresholds</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--admin-muted)]">Set the operating ranges used to review environmental conditions and prioritize alerts across the network.</p></div></div></section>
+ {saved&&<div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><CheckCircle2 size={17}/> Threshold values saved for this session.</div>}
+ <section className="grid gap-5 md:grid-cols-2">{values.map((item)=>{const Icon=icons[item.key as keyof typeof icons];return <Card key={item.key} className="rounded-2xl border-[var(--admin-border)] bg-white shadow-sm"><CardContent className="p-6"><div className="flex items-center justify-between"><div><h2 className="font-semibold text-[var(--admin-primary-deep)]">{item.title}</h2><p className="mt-1 text-xs text-[var(--admin-muted)]">Alert range · {item.unit}</p></div><span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--admin-primary-soft)] text-[var(--admin-primary)]"><Icon size={20}/></span></div><div className="mt-5 grid grid-cols-2 gap-4"><label className="text-sm text-[var(--admin-muted)]">Minimum<Input type="number" step="0.1" value={item.min} onChange={(e)=>update(item.key,"min",e.target.value)} className="mt-1 h-11 rounded-xl text-base font-semibold text-slate-800"/></label><label className="text-sm text-[var(--admin-muted)]">Maximum<Input type="number" step="0.1" value={item.max} onChange={(e)=>update(item.key,"max",e.target.value)} className="mt-1 h-11 rounded-xl text-base font-semibold text-slate-800"/></label></div><div className="mt-4 rounded-xl bg-[var(--admin-surface)] p-3 text-sm text-[var(--admin-muted)]">Current configured range: <span className="font-semibold text-slate-800">{item.min}–{item.max} {item.unit}</span></div>{item.min>=item.max&&<p className="mt-2 text-xs font-medium text-rose-600">Maximum must be greater than minimum.</p>}</CardContent></Card>})}</section>
+ <section className="flex flex-wrap items-center gap-3"><Button onClick={save} disabled={values.some((v)=>v.min>=v.max)} className="rounded-xl bg-[var(--admin-primary)] text-white hover:bg-[var(--admin-primary-deep)]"><CheckCircle2 size={16} className="mr-2"/>Save changes</Button><Button variant="outline" onClick={reset} className="rounded-xl border-[var(--admin-border)]"><RotateCcw size={16} className="mr-2"/>Reset defaults</Button><p className="text-xs text-[var(--admin-muted)]">Changes apply to this open dashboard session.</p></section>
+ </div>}
